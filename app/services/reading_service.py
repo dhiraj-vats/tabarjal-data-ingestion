@@ -1,7 +1,8 @@
-from datetime import date
+from datetime import date, timedelta
 
 import psycopg
 
+from app.core.config import settings
 from app.repositories.reading_repository import ReadingRepository
 from app.schemas.readings import (
     DayWiseSummaryResponse,
@@ -93,7 +94,7 @@ class ReadingService:
                         category=category,
                         source_code=source_item.source_code,
                         component_key=component_key,
-                        block_ts=block.block_ts,
+                        block_ts=block.block_ts + timedelta(hours=settings.block_ts_offset_hours),
                         value=value,
                         source=payload.source,
                     )

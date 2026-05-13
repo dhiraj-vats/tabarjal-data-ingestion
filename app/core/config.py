@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     database_url: str
     pqm_opc_url: str = "opc.tcp://172.16.51.1:4840"
     ingest_log_dir: str = "logs/ingest"
+    block_ts_offset_hours: int = 3
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,
