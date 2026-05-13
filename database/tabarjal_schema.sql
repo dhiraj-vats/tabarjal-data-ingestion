@@ -130,7 +130,8 @@ WHERE is_deleted = FALSE;
 CREATE INDEX IF NOT EXISTS idx_tb_inverter_readings_deleted_lookup
 ON tb_inverter_readings (src_component_id, block_ts, is_deleted);
 
--- Master data sources.
+-- Master data sources .
+
 
 INSERT INTO tb_data_sources (source_code, source_name, category, location)
 VALUES
@@ -275,3 +276,16 @@ SET display_name = EXCLUDED.display_name,
 -- Quick checks:
 -- SELECT category, COUNT(*) FROM tb_data_sources GROUP BY category ORDER BY category;
 -- SELECT s.category, COUNT(*) FROM tb_source_components c JOIN tb_data_sources s ON s.id = c.source_id GROUP BY s.category ORDER BY s.category;
+
+
+
+
+
+UPDATE tb_source_components c
+SET
+    external_key = 'ns=6;s=Arp.Plc.Eclr/MCR_' || s.source_code || '_TOTAL_ACTIVE_POWER',
+    updated_at = NOW()
+FROM tb_data_sources s
+WHERE s.id = c.source_id
+  AND s.category = 'PQM'
+  AND c.component_key = 'total_active_power';

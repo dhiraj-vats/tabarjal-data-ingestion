@@ -1,8 +1,9 @@
 from datetime import date, datetime
 
 import psycopg
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 
+from app.core.audit_logger import write_ingest_log
 from app.core.response import success_response
 from app.db.session import get_connection
 from app.schemas.readings import BLOCK_TIMESTAMP_FORMAT
@@ -30,9 +31,17 @@ def ingest_readings_for_category(
     category: str,
     payload: IngestReadingRequest,
     conn: psycopg.Connection,
+    request: Request,
 ) -> dict:
     service = ReadingService(conn)
     data = service.ingest_readings(category=category, payload=payload)
+    write_ingest_log(
+        category=category,
+        endpoint=str(request.url.path),
+        client_ip=request.client.host if request.client else None,
+        payload=payload,
+        result=data,
+    )
     message = f"{category} readings ingested successfully" if data["failed"] == 0 else f"{category} readings ingested with failures"
     return success_response(message, data)
 
@@ -48,9 +57,10 @@ def get_pqm_day_wise_summary(
 @router.post("/pqm/readings/ingest")
 def ingest_pqm_readings(
     payload: IngestReadingRequest,
+    request: Request,
     conn: psycopg.Connection = Depends(get_connection),
 ) -> dict:
-    return ingest_readings_for_category(category="PQM", payload=payload, conn=conn)
+    return ingest_readings_for_category(category="PQM", payload=payload, conn=conn, request=request)
 
 
 @router.post("/pqm/readings/opc-ingest")
@@ -79,9 +89,10 @@ def get_wms_day_wise_summary(
 @router.post("/wms/readings/ingest")
 def ingest_wms_readings(
     payload: IngestReadingRequest,
+    request: Request,
     conn: psycopg.Connection = Depends(get_connection),
 ) -> dict:
-    return ingest_readings_for_category(category="WMS", payload=payload, conn=conn)
+    return ingest_readings_for_category(category="WMS", payload=payload, conn=conn, request=request)
 
 
 @router.get("/sacu/readings/day-wise")
@@ -95,6 +106,7 @@ def get_sacu_day_wise_summary(
 @router.post("/sacu/readings/ingest")
 def ingest_sacu_readings(
     payload: IngestReadingRequest,
+    request: Request,
     conn: psycopg.Connection = Depends(get_connection),
 ) -> dict:
-    return ingest_readings_for_category(category="SACU", payload=payload, conn=conn)
+    return ingest_readings_for_category(category="SACU", payload=payload, conn=conn, request=request)
