@@ -142,3 +142,23 @@ class ReadingRepository:
             cur.execute(soft_delete_query, params)
             cur.execute(insert_query, params)
             return cur.fetchone()
+
+    def get_opc_components(self, *, category: str) -> list[dict]:
+        query = """
+            SELECT
+                s.source_code,
+                s.source_name,
+                c.component_key,
+                c.external_key
+            FROM tb_source_components c
+            JOIN tb_data_sources s ON s.id = c.source_id
+            WHERE s.category = %(category)s
+              AND s.is_active = TRUE
+              AND c.is_active = TRUE
+              AND c.external_key LIKE 'ns=%%'
+            ORDER BY s.source_code, c.component_key;
+        """
+
+        with self.conn.cursor() as cur:
+            cur.execute(query, {"category": category})
+            return list(cur.fetchall())

@@ -129,6 +129,15 @@
         },
         "url": "{{base_url}}/api/v1/sacu/readings/ingest"
       }
+    },
+    {
+      "name": "PQM - OPC Read and Ingest",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": "{{base_url}}/api/v1/pqm/readings/opc-ingest?block_ts=2026-05-13 12:00:00",
+        "description": "Reads active PQM OPC UA node mappings from opc.tcp://172.16.51.1:4840 and inserts the values into tb_pqm_readings. If block_ts is omitted, server current time is used."
+      }
     }
   ]
 }

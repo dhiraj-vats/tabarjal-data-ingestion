@@ -1,11 +1,13 @@
-from datetime import date
+from datetime import date, datetime
 
 import psycopg
 from fastapi import APIRouter, Depends, Query
 
 from app.core.response import success_response
 from app.db.session import get_connection
+from app.schemas.readings import BLOCK_TIMESTAMP_FORMAT
 from app.schemas.readings import IngestReadingRequest
+from app.services.opc_service import OpcIngestionService
 from app.services.reading_service import ReadingService
 
 
@@ -49,6 +51,21 @@ def ingest_pqm_readings(
     conn: psycopg.Connection = Depends(get_connection),
 ) -> dict:
     return ingest_readings_for_category(category="PQM", payload=payload, conn=conn)
+
+
+@router.post("/pqm/readings/opc-ingest")
+async def opc_ingest_pqm_readings(
+    block_ts: str | None = Query(default=None, description="Optional timestamp in YYYY-MM-DD HH:MM:SS format"),
+    conn: psycopg.Connection = Depends(get_connection),
+) -> dict:
+    parsed_block_ts = datetime.now().replace(microsecond=0)
+    if block_ts:
+        parsed_block_ts = datetime.strptime(block_ts, BLOCK_TIMESTAMP_FORMAT)
+
+    service = OpcIngestionService(conn)
+    data = await service.read_and_ingest_pqm(parsed_block_ts)
+    message = "PQM OPC readings ingested successfully" if data["failed"] == 0 else "PQM OPC readings ingested with failures"
+    return success_response(message, data)
 
 
 @router.get("/wms/readings/day-wise")
