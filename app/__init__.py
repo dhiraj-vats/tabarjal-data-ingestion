@@ -1,0 +1,1 @@
+"""GenWeatherAPI application package."""
