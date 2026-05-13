@@ -18,11 +18,14 @@ router = APIRouter()
 def get_day_wise_summary_for_category(
     *,
     category: str,
-    date: date,
+    reading_date: date | None,
     conn: psycopg.Connection,
 ) -> dict:
+    if reading_date is None:
+        reading_date = datetime.now().date()
+
     service = ReadingService(conn)
-    data = service.get_day_wise_summary(category=category, reading_date=date)
+    data = service.get_day_wise_summary(category=category, reading_date=reading_date)
     return success_response(f"{category} readings fetched successfully", data)
 
 
@@ -48,10 +51,10 @@ def ingest_readings_for_category(
 
 @router.get("/pqm/readings/day-wise")
 def get_pqm_day_wise_summary(
-    date: date = Query(..., description="Reading date in YYYY-MM-DD format"),
+    date: date | None = Query(default=None, description="Reading date in YYYY-MM-DD format. Defaults to today."),
     conn: psycopg.Connection = Depends(get_connection),
 ) -> dict:
-    return get_day_wise_summary_for_category(category="PQM", date=date, conn=conn)
+    return get_day_wise_summary_for_category(category="PQM", reading_date=date, conn=conn)
 
 
 @router.post("/pqm/readings/ingest")
@@ -80,10 +83,10 @@ async def opc_ingest_pqm_readings(
 
 @router.get("/wms/readings/day-wise")
 def get_wms_day_wise_summary(
-    date: date = Query(..., description="Reading date in YYYY-MM-DD format"),
+    date: date | None = Query(default=None, description="Reading date in YYYY-MM-DD format. Defaults to today."),
     conn: psycopg.Connection = Depends(get_connection),
 ) -> dict:
-    return get_day_wise_summary_for_category(category="WMS", date=date, conn=conn)
+    return get_day_wise_summary_for_category(category="WMS", reading_date=date, conn=conn)
 
 
 @router.post("/wms/readings/ingest")
@@ -97,10 +100,10 @@ def ingest_wms_readings(
 
 @router.get("/sacu/readings/day-wise")
 def get_sacu_day_wise_summary(
-    date: date = Query(..., description="Reading date in YYYY-MM-DD format"),
+    date: date | None = Query(default=None, description="Reading date in YYYY-MM-DD format. Defaults to today."),
     conn: psycopg.Connection = Depends(get_connection),
 ) -> dict:
-    return get_day_wise_summary_for_category(category="SACU", date=date, conn=conn)
+    return get_day_wise_summary_for_category(category="SACU", reading_date=date, conn=conn)
 
 
 @router.post("/sacu/readings/ingest")
