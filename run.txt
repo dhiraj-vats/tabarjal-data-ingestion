@@ -1,6 +1,6 @@
 # FNS Tabarjal - Run Steps
 
-cd C:\FNS-TABARJAL\data-ingestion
+cd C:\xampp\htdocs\tabarjal-data-ingestion
 
 python -m venv .venv
 
